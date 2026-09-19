@@ -17,7 +17,8 @@ namespace MoyuWord
 
         public LibraryStore(string dataDirectory = null)
         {
-            DataDirectory = Path.GetFullPath(dataDirectory ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MoyuWord"));
+            IsPortable = dataDirectory == null && File.Exists(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "portable.flag"));
+            DataDirectory = Path.GetFullPath(dataDirectory ?? GetDefaultDataDirectory(AppDomain.CurrentDomain.BaseDirectory));
             json = new JavaScriptSerializer { MaxJsonLength = MaxFileBytes, RecursionLimit = 32 };
             Libraries = new List<WordLibrary>();
             Warnings = new List<string>();
@@ -33,6 +34,17 @@ namespace MoyuWord
             get { List<Word> copy = new List<Word>(); foreach (Word word in favorites) copy.Add(Clone(word)); return copy; }
         }
         public string DataDirectory { get; private set; }
+        public bool IsPortable { get; private set; }
+        public string InstanceKey
+        {
+            get { return "Local\\MoyuWord.App." + Digest(DataDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar).ToUpperInvariant()); }
+        }
+        internal static string GetDefaultDataDirectory(string applicationDirectory)
+        {
+            return File.Exists(Path.Combine(applicationDirectory, "portable.flag"))
+                ? Path.Combine(applicationDirectory, "data")
+                : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MoyuWord");
+        }
 
         public void Load()
         {
@@ -124,11 +136,20 @@ namespace MoyuWord
 
         private void EnsureDirectories()
         {
-            try { Directory.CreateDirectory(DataDirectory); Directory.CreateDirectory(Path.Combine(DataDirectory, "libraries")); }
+            try
+            {
+                Directory.CreateDirectory(DataDirectory); Directory.CreateDirectory(Path.Combine(DataDirectory, "libraries"));
+                // Do not silently fall back to the host profile for a read-only USB drive.
+                if (IsPortable)
+                {
+                    string probe = Path.Combine(DataDirectory, ".write-check-" + Guid.NewGuid().ToString("N"));
+                    using (var file = new FileStream(probe, FileMode.CreateNew, FileAccess.Write, FileShare.None, 1, FileOptions.DeleteOnClose)) { }
+                }
+            }
             catch (Exception ex)
             {
                 if (!(ex is IOException) && !(ex is UnauthorizedAccessException)) throw;
-                throw new IOException("无法创建本地数据目录，请检查磁盘空间和写入权限：" + DataDirectory, ex);
+                throw new IOException((IsPortable ? "便携版需要写入程序旁的 data 文件夹，请检查 U 盘是否只读、空间是否充足。未改存到其他位置：" : "无法写入本地数据目录，请检查磁盘空间和写入权限：") + DataDirectory, ex);
             }
         }
 

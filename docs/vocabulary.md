@@ -52,7 +52,7 @@ apple,苹果,n.,ˈæpəl,,
 
 ## 数据位置与恢复
 
-默认数据目录是 `%LOCALAPPDATA%\MoyuWord`，不需要管理员权限：
+便携版（EXE 旁有 `portable.flag`）的数据目录为 `MoyuWord-x86\data`，与当前工作目录无关。安装版的数据目录仍为 `%LOCALAPPDATA%\MoyuWord`。两者都不需要管理员权限，但所在目录必须可写：
 
 - `libraries\import-<hash>.json`：已经验证并保存的自定义词库。
 - `favorites.json`：收藏的完整单词快照，因此删除原始导入文件不会丢失收藏。

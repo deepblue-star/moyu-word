@@ -82,7 +82,23 @@ function Publish-PortableDirectory([string]$Stage, [string]$Destination) {
         Assert-NoReparse $path
     }
     if (-not (Test-Path -LiteralPath $resolvedStage -PathType Container)) { throw "Staged portable package is missing: $resolvedStage" }
-    Assert-OutputFilesAvailable @($resolvedDestination)
+    Assert-OutputFilesAvailable @($resolvedDestination, $resolvedStage)
+    $existingData = Join-Path $resolvedDestination 'data'
+    $stagedData = Join-Path $resolvedStage 'data'
+    if (Test-Path -LiteralPath $stagedData) {
+        if (-not (Test-Path -LiteralPath $stagedData -PathType Container) -or @(Get-ChildItem -LiteralPath $stagedData -Force).Count -ne 0) {
+            throw "Staged portable data must be empty before publication: $stagedData. Neither copy was changed."
+        }
+    }
+    if (Test-Path -LiteralPath $existingData) {
+        if (-not (Test-Path -LiteralPath $existingData -PathType Container)) { throw "Existing portable data is not a directory and was not changed: $existingData" }
+        $null = New-Item -ItemType Directory -Path $stagedData -Force
+        # Archives have already been created from the clean stage. Preserve private
+        # files only in the local portable directory, before touching the old output.
+        foreach ($item in Get-ChildItem -LiteralPath $existingData -Force) {
+            Copy-Item -LiteralPath $item.FullName -Destination $stagedData -Recurse -Force -ErrorAction Stop
+        }
+    }
     $previous = Join-Path $outputRoot ('.previous-' + [Guid]::NewGuid().ToString('N'))
     if (Test-Path -LiteralPath $resolvedDestination) { [IO.Directory]::Move($resolvedDestination, $previous) }
     try { [IO.Directory]::Move($resolvedStage, $resolvedDestination) }
@@ -96,6 +112,21 @@ function Publish-PortableDirectory([string]$Stage, [string]$Destination) {
         try { Assert-OutputFilesAvailable @($previous); Remove-BuildDirectory $previous }
         catch { Write-Warning "New portable output is complete. Old backup could not be removed and was retained at: $previous" }
     }
+}
+function New-DistributionArchives([string]$Package, [string]$PortableArchive, [string]$InstallerArchive) {
+    $marker = Join-Path $Package 'portable.flag'
+    $data = Join-Path $Package 'data'
+    if ((Test-Path -LiteralPath $marker) -or (Test-Path -LiteralPath $data)) {
+        throw 'Distribution archives require a clean staging package without portable.flag or data.'
+    }
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    if ($InstallerArchive) {
+        # Installed copies retain their per-user LocalAppData storage behavior.
+        [IO.Compression.ZipFile]::CreateFromDirectory($Package, $InstallerArchive, [IO.Compression.CompressionLevel]::Optimal, $false)
+    }
+    [IO.File]::WriteAllText($marker, "MoyuWord portable mode: keep user data in the adjacent data directory.`r`n")
+    $null = New-Item -ItemType Directory -Path $data
+    [IO.Compression.ZipFile]::CreateFromDirectory($Package, $PortableArchive, [IO.Compression.CompressionLevel]::Optimal, $false)
 }
 function Invoke-Compiler([string[]]$Arguments) {
     & $compiler @Arguments
@@ -161,12 +192,12 @@ try {
     Invoke-Compiler ($setupArgs + @('/define:UNINSTALLER', ('/out:' + (Join-Path $packageStage 'Uninstall.exe')), $setupSource))
     Copy-Item -LiteralPath (Join-Path $projectRoot 'src\MoyuWord.exe.config') -Destination (Join-Path $packageStage 'Uninstall.exe.config')
     Assert-X86 (Join-Path $packageStage 'MoyuWord.exe')
-    Add-Type -AssemblyName System.IO.Compression.FileSystem
     $stageZip = Join-Path $stageRoot 'MoyuWord-x86.zip'
-    [IO.Compression.ZipFile]::CreateFromDirectory($packageStage, $stageZip, [IO.Compression.CompressionLevel]::Optimal, $false)
+    $installerPayload = if ($SkipInstaller) { '' } else { Join-Path $stageRoot 'installer-payload.zip' }
+    New-DistributionArchives $packageStage $stageZip $installerPayload
     if (-not $SkipInstaller) {
         $stageSetup = Join-Path $stageRoot 'MoyuWord-Setup-x86.exe'
-        Invoke-Compiler ($setupArgs + @(('/resource:' + $stageZip + ',MoyuWord.Package.zip'), ('/out:' + $stageSetup), $setupSource))
+        Invoke-Compiler ($setupArgs + @(('/resource:' + $installerPayload + ',MoyuWord.Package.zip'), ('/out:' + $stageSetup), $setupSource))
         Assert-X86 $stageSetup
     }
     # Check all current outputs again immediately before publication, then swap the

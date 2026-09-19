@@ -5,3 +5,5 @@ dist/
 *.log
 .vs/
 .worktrees/
+/data/
+/portable.flag

@@ -12,11 +12,13 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\build.ps1
 
 Outputs:
 
-- `dist/MoyuWord-x86/`: portable application; start `MoyuWord.exe`.
+- `dist/MoyuWord-x86/`: portable application; start `MoyuWord.exe`. The included `portable.flag` selects the adjacent `data/` directory for settings, favorites and imported libraries.
 - `dist/MoyuWord-x86.zip`: complete portable files, including native binaries and bundled notices.
 - `dist/MoyuWord-Setup-x86.exe`: standalone offline installer with the zip embedded as a resource.
 
-The build prints SHA-256 checksums. Extract the whole portable zip, rather than only its executable. Personal word libraries, favorites, and settings are stored separately by the application and survive upgrades and uninstall.
+The build prints SHA-256 checksums. Extract the whole portable zip, rather than only its executable. Copy the entire portable directory, including `data/` and `portable.flag`, to carry learning data to another machine. A read-only portable directory produces an error instead of falling back to the host profile.
+
+The installer embeds a separate payload without `portable.flag` or personal data and keeps using `%LOCALAPPDATA%\MoyuWord`. Published ZIP/setup artifacts are clean. When rebuilding an existing local portable directory, the build preserves its `data/` tree after creating those archives; locked personal files or a conflicting stage abort without overwriting either copy.
 
 Close a running portable app or installer before rebuilding. The build exclusively opens every existing output file before compilation and checks again before publication; any lock stops the build without changing existing outputs. Portable publication renames the complete old directory to a backup, moves the complete staged directory into place, and then removes that backup. A failed directory move restores the old name. If backup cleanup is blocked, its path is reported and retained. Run `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\BuildTests.ps1` for isolated file-lock/publication tests; they do not launch or modify an installed app.
 

@@ -458,7 +458,7 @@ namespace MoyuWord.Setup
             }
             using (RegistryKey key = Registry.CurrentUser.CreateSubKey(RegistryPath))
             {
-                key.SetValue("DisplayName", "摸鱼单词"); key.SetValue("DisplayVersion", "1.0.0");
+                key.SetValue("DisplayName", "摸鱼单词"); key.SetValue("DisplayVersion", "1.0.1");
                 key.SetValue("Publisher", "MoyuWord"); key.SetValue("InstallLocation", target);
                 key.SetValue("DisplayIcon", Path.Combine(target, "MoyuWord.exe"));
                 string command = Program.Quote(Path.Combine(target, "Uninstall.exe"));

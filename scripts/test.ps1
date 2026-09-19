@@ -17,10 +17,11 @@ foreach ($directory in @('assets', 'native')) {
 $baseArgs = @('/nologo','/target:exe','/platform:x86','/langversion:5') + $references
 Push-Location $projectRoot
 try {
-    foreach ($test in @('Store','Pdf','Ui','PdfUi','Package')) {
+    foreach ($test in @('Store','Portable','Pdf','Ui','PdfUi','Package')) {
         $outFile = Join-Path $testOutput ($test + 'Tests.exe')
         $sourceList = switch ($test) {
             'Store' { @('src\Models.cs','src\LibraryStore.cs','tests\StoreTests.cs') }
+            'Portable' { @('src\Models.cs','src\LibraryStore.cs','tests\PortableTests.cs') }
             'Pdf' { @('src\PdfDocument.cs','tests\PdfTests.cs') }
             'Ui' { @(Get-ChildItem -LiteralPath (Join-Path $projectRoot 'src') -Filter '*.cs' | ForEach-Object FullName) + @('tests\UiTests.cs') }
             'PdfUi' { @(Get-ChildItem -LiteralPath (Join-Path $projectRoot 'src') -Filter '*.cs' | ForEach-Object FullName) + @('tests\PdfUiTests.cs') }
@@ -37,4 +38,6 @@ try {
     }
     & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $projectRoot 'tests\BuildTests.ps1')
     if ($LASTEXITCODE -ne 0) { throw 'Build safety tests failed' }
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $projectRoot 'tests\PortablePackageTests.ps1')
+    if ($LASTEXITCODE -ne 0) { throw 'Portable package tests failed' }
 } finally { Pop-Location }
