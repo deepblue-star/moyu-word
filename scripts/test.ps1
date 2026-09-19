@@ -17,18 +17,21 @@ foreach ($directory in @('assets', 'native')) {
 $baseArgs = @('/nologo','/target:exe','/platform:x86','/langversion:5') + $references
 Push-Location $projectRoot
 try {
-    foreach ($test in @('Store','Portable','Pdf','Ui','PdfUi','Package')) {
+    foreach ($test in @('Store','StudyProgress','Portable','Pdf','Ui','StudyUi','PdfUi','Package')) {
         $outFile = Join-Path $testOutput ($test + 'Tests.exe')
         $sourceList = switch ($test) {
             'Store' { @('src\Models.cs','src\LibraryStore.cs','tests\StoreTests.cs') }
+            'StudyProgress' { @('src\Models.cs','src\LibraryStore.cs','tests\StudyProgressTests.cs') }
             'Portable' { @('src\Models.cs','src\LibraryStore.cs','tests\PortableTests.cs') }
             'Pdf' { @('src\PdfDocument.cs','tests\PdfTests.cs') }
             'Ui' { @(Get-ChildItem -LiteralPath (Join-Path $projectRoot 'src') -Filter '*.cs' | ForEach-Object FullName) + @('tests\UiTests.cs') }
+            'StudyUi' { @(Get-ChildItem -LiteralPath (Join-Path $projectRoot 'src') -Filter '*.cs' | ForEach-Object FullName) + @('tests\StudyUiTests.cs') }
             'PdfUi' { @(Get-ChildItem -LiteralPath (Join-Path $projectRoot 'src') -Filter '*.cs' | ForEach-Object FullName) + @('tests\PdfUiTests.cs') }
             'Package' { @('installer\Setup.cs', 'tests\PackageTests.cs') }
         }
         $compileArgs = $baseArgs + @('/out:' + $outFile) + $sourceList
         if ($test -eq 'Ui') { $compileArgs += '/main:UiTests' }
+        if ($test -eq 'StudyUi') { $compileArgs += '/main:StudyUiTests' }
         if ($test -eq 'PdfUi') { $compileArgs += '/main:PdfUiTests' }
         if ($test -eq 'Package') { $compileArgs += '/main:PackageTests' }
         & $compilerPath @compileArgs

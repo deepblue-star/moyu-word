@@ -13,6 +13,7 @@ namespace MoyuWord
         private const int MaxWords = 20000;
         private readonly JavaScriptSerializer json;
         private List<Word> favorites;
+        private Dictionary<string, StudyProgress> progress;
         private static readonly UTF8Encoding Utf8 = new UTF8Encoding(false, true);
 
         public LibraryStore(string dataDirectory = null)
@@ -24,6 +25,7 @@ namespace MoyuWord
             Warnings = new List<string>();
             Settings = new AppSettings();
             favorites = new List<Word>();
+            progress = new Dictionary<string, StudyProgress>(StringComparer.Ordinal);
         }
 
         public List<WordLibrary> Libraries { get; private set; }
@@ -85,6 +87,51 @@ namespace MoyuWord
                 List<Word> value = json.Deserialize<List<Word>>(text);
                 return NormalizeWords(value, "收藏");
             }, new List<Word>());
+            progress = LoadOptional("progress.json", delegate(string text)
+            {
+                Dictionary<string, StudyProgress> value = json.Deserialize<Dictionary<string, StudyProgress>>(text);
+                if (value == null) throw new InvalidDataException("学习进度 JSON 不能为空。");
+                foreach (KeyValuePair<string, StudyProgress> item in value)
+                {
+                    ValidateDeckId(item.Key);
+                    if (item.Value == null) throw new InvalidDataException("学习进度记录不能为空。");
+                    item.Value.English = Field(item.Value.English, 256, "进度单词", 0, true);
+                }
+                return new Dictionary<string, StudyProgress>(value, StringComparer.Ordinal);
+            }, new Dictionary<string, StudyProgress>(StringComparer.Ordinal));
+        }
+
+        public int? GetStudyIndex(string deckId, IList<Word> words)
+        {
+            ValidateDeckId(deckId);
+            if (words == null) throw new ArgumentNullException("words");
+            StudyProgress saved;
+            if (words.Count == 0 || !progress.TryGetValue(deckId, out saved)) return null;
+            string key = EnglishKey(saved.English);
+            for (int i = 0; i < words.Count; i++)
+                if (words[i] != null && !String.IsNullOrWhiteSpace(words[i].English) && EnglishKey(words[i].English) == key) return i;
+            return Math.Max(0, Math.Min(words.Count - 1, saved.Index));
+        }
+
+        public void SaveStudyPosition(string deckId, IList<Word> words, int index)
+        {
+            ValidateDeckId(deckId);
+            if (words == null) throw new ArgumentNullException("words");
+            if (index < 0 || index >= words.Count) throw new ArgumentOutOfRangeException("index", "学习位置必须在当前词库范围内。");
+            if (words[index] == null) throw new InvalidDataException("进度单词不能为空。");
+            string english = Field(words[index].English, 256, "进度单词", 0, true);
+            StudyProgress saved;
+            if (progress.TryGetValue(deckId, out saved) && saved.Index == index && EnglishKey(saved.English) == EnglishKey(english)) return;
+            Dictionary<string, StudyProgress> next = new Dictionary<string, StudyProgress>(progress, StringComparer.Ordinal);
+            next[deckId] = new StudyProgress { Index = index, English = english, UpdatedUtc = DateTime.UtcNow.ToString("o") };
+            EnsureDirectories();
+            WriteAtomic(Path.Combine(DataDirectory, "progress.json"), json.Serialize(next));
+            progress = next;
+        }
+
+        private static void ValidateDeckId(string deckId)
+        {
+            if (String.IsNullOrWhiteSpace(deckId)) throw new ArgumentException("学习进度需要有效的词库标识。", "deckId");
         }
 
         public WordLibrary Import(string path)

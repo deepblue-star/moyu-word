@@ -117,7 +117,7 @@ namespace MoyuWord
             var controls = new StackPanel { Orientation = Orientation.Horizontal };
             pinButton = TitleButton(Topmost ? "●" : "♧", "固定前台 / 取消置顶", TogglePin);
             UpdatePinIcon();
-            controls.Children.Add(pinButton); controls.Children.Add(TitleButton("−", "最小化", delegate { WindowState = WindowState.Minimized; }));
+            controls.Children.Add(pinButton); controls.Children.Add(TitleButton("−", "最小化", delegate { RecordCardExposure(); WindowState = WindowState.Minimized; }));
             controls.Children.Add(TitleButton("□", "放大 / 还原", ToggleMaximize)); controls.Children.Add(TitleButton("×", "关闭", Close));
             Grid.SetColumn(controls, 1); title.Children.Add(controls); Surface.Children.Add(title);
             content = new ContentControl { Margin = new Thickness(0, 12, 0, 0), HorizontalContentAlignment = HorizontalAlignment.Stretch, VerticalContentAlignment = VerticalAlignment.Stretch };
@@ -173,6 +173,7 @@ namespace MoyuWord
 
         private void ShowHome()
         {
+            RecordCardExposure();
             var stack = Heading("A LITTLE PAUSE", "给自己，一点留白。", "在工作的间隙，悄悄积累一点。\n鼠标移入显示，移开便隐身。");
             stack.Children.Add(ModeCard("01", "背单词", "一张卡片，一个新收获", ShowWordMenu));
             stack.Children.Add(ModeCard("02", "阅读", "打开本地 PDF，接着上次的页码", ShowReader));
@@ -189,6 +190,7 @@ namespace MoyuWord
         }
         private void ShowDecks()
         {
+            RecordCardExposure();
             var stack = Heading("YOUR LIBRARIES", "选一本词库。", "每次只看一个词，按自己的节奏来。", ShowWordMenu);
             foreach (var library in store.Libraries)
             {
@@ -198,13 +200,9 @@ namespace MoyuWord
             var import = Theme.Button("＋ 导入词库", ImportLibrary); import.Margin = new Thickness(0, 18, 0, 0); stack.Children.Add(import);
             SetPage("decks", Scroll(stack));
         }
-        private void StartDeck(List<Word> words, string name, bool fromFavorites)
-        {
-            if (words.Count == 0) { Toast("这里还没有单词，先收藏几个喜欢的词吧。"); return; }
-            deck = new List<Word>(words); deckName = name; cardIndex = 0; revealed = false; ShowCard(12);
-        }
         private void MoveCard(int direction)
         {
+            RecordCardExposure();
             if (deck.Count == 0) return; cardIndex = (cardIndex + direction + deck.Count) % deck.Count; revealed = false; ShowCard(direction * 26);
         }
         private void ShowCard(double direction)
@@ -212,8 +210,13 @@ namespace MoyuWord
             var word = deck[cardIndex];
             var layout = new Grid(); layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); layout.RowDefinitions.Add(new RowDefinition()); layout.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             var header = new Grid(); header.ColumnDefinitions.Add(new ColumnDefinition()); header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            var back = Theme.Button("‹ " + deckName, ShowDecks); back.HorizontalAlignment = HorizontalAlignment.Left; back.BorderThickness = new Thickness(0); header.Children.Add(back);
-            var count = Theme.Text((cardIndex + 1) + " / " + deck.Count, 11, Theme.Muted); Grid.SetColumn(count, 1); header.Children.Add(count); layout.Children.Add(header);
+            var back = Theme.Button("‹ " + deckName, ShowDecks); back.HorizontalAlignment = HorizontalAlignment.Stretch; back.BorderThickness = new Thickness(0);
+            var deckLabel = Theme.Text("‹ " + deckName, 12); deckLabel.TextWrapping = TextWrapping.NoWrap; deckLabel.TextTrimming = TextTrimming.CharacterEllipsis;
+            back.Content = deckLabel; back.ToolTip = deckName; header.Children.Add(back);
+            var position = new StackPanel { Orientation = Orientation.Horizontal };
+            var count = Theme.Text((cardIndex + 1) + " / " + deck.Count, 11, Theme.Muted); count.Margin = new Thickness(5, 0, 8, 0); position.Children.Add(count);
+            var jumpButton = Theme.Button("跳转", ShowJumpDialog); jumpButton.Padding = new Thickness(9, 7, 9, 7); position.Children.Add(jumpButton);
+            Grid.SetColumn(position, 1); header.Children.Add(position); layout.Children.Add(header);
             var body = new StackPanel { Margin = new Thickness(12, 26, 12, 10), VerticalAlignment = VerticalAlignment.Center };
             var wordText = Theme.Text(word.English, word.English.Length > 20 ? 27 : 35); wordText.FontFamily = new FontFamily("Georgia"); wordText.TextAlignment = TextAlignment.Center; body.Children.Add(wordText);
             if (revealed)
@@ -238,6 +241,8 @@ namespace MoyuWord
             nav.Children.Add(Theme.Button("←", delegate { MoveCard(-1); }, false, "上一个单词")); var hint = Theme.Text("左右滑动 · 方向键切换", 10, Theme.Muted); hint.HorizontalAlignment = HorizontalAlignment.Center; Grid.SetColumn(hint, 1); nav.Children.Add(hint);
             var next = Theme.Button("→", delegate { MoveCard(1); }, false, "下一个单词"); Grid.SetColumn(next, 2); nav.Children.Add(next); actions.Children.Add(nav);
             Grid.SetRow(actions, 2); layout.Children.Add(actions); SetPage("cards", layout, direction);
+            studyCardView = layout; studyViewIndex = cardIndex;
+            layout.Loaded += delegate { RecordCardExposure(); };
         }
 
         private StackPanel WordDetails(Word word)
@@ -277,6 +282,7 @@ namespace MoyuWord
         }
         private void OpenOverlay(UIElement child)
         {
+            RecordCardExposure();
             content.Visibility = Visibility.Hidden; Overlay.Children.Clear(); Overlay.Children.Add(child); Overlay.Visibility = Visibility.Visible; Theme.Animate(child);
         }
         private void CloseOverlay()

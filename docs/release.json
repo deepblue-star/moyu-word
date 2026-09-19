@@ -1,18 +1,21 @@
 {
   "product": "摸鱼单词",
-  "version": "1.0.1",
-  "verifiedAtUtc": "2026-09-19T14:04:43Z",
+  "version": "1.0.2",
+  "verifiedAtUtc": "2026-09-19T14:24:32Z",
   "branch": "develop",
   "architecture": "x86",
   "supportedSystems": ["Windows 10 x86", "Windows 10 x64", "Windows 11 x64 (WOW64)"],
   "runtime": "Windows built-in .NET Framework 4.6 or later; bundled native PDFium",
   "testedHost": "Windows 11 10.0.26200 x64, 200% system DPI",
   "native32BitWindowsTested": false,
-  "automatedChecksPassed": 103,
+  "automatedChecksPassed": 141,
   "initialReleaseInstallation": {"version": "1.0.0", "exitCode": 0, "installedFilesHashChecked": 33, "mismatches": 0},
   "verifiedProcessBits": 32,
   "portableDataDirectory": "dist/MoyuWord-x86/data",
   "portableMarker": "portable.flag",
+  "studyProgressFile": "data/progress.json",
+  "studyGuiSmoke": {"isolatedCopy": "build/study-smoke-v102", "jumpNumber": 100, "word": "allot", "restartResumeNumber": 100, "answerHiddenOnResume": true},
+  "studyProgressMigrationTested": ["built-in", "imported", "favorites"],
   "migratedPersonalFiles": 5,
   "actualRebuildPreservedPersonalFiles": 5,
   "genericArchivesContainPersonalData": false,
@@ -22,9 +25,9 @@
   "restartPersistence": ["4025 TEM-4 words", "2 imported CSV words", "1 favorite", "391x490 at 704,155", "background 0.94 and text 1"],
   "initialReleaseNetworkObservation": {"tcpEndpoints": 0, "udpEndpoints": 0},
   "artifacts": [
-    {"path": "dist/MoyuWord-Setup-x86.exe", "bytes": 4079616, "sha256": "BCA527FB7B833726539BE15C0C52D12C875E7C1CAF13D0F10AC68AB162926FE2"},
-    {"path": "dist/MoyuWord-x86.zip", "bytes": 4051643, "sha256": "5062DB7121C0CBF2905CD62983201A9D77C79B7C1E5935457F3E3D9983D8DCBA"},
-    {"path": "dist/MoyuWord-x86/MoyuWord.exe", "bytes": 78848, "sha256": "1B0FE2C0D0255856F6E8F860F830B66DAFBB064EA708971F064416454E0B0021"},
+    {"path": "dist/MoyuWord-Setup-x86.exe", "bytes": 4083712, "sha256": "21AC84C81C02D4B17AF566445588F3D2B49E8F6361A2CFC7B5F7E2A1385072B5"},
+    {"path": "dist/MoyuWord-x86.zip", "bytes": 4055819, "sha256": "4FB0274B31C726B94CB2E31DF2463DA59ABDA196311D922DD57E8F3C53DFBA8C"},
+    {"path": "dist/MoyuWord-x86/MoyuWord.exe", "bytes": 86016, "sha256": "68514136C3E3514100085232B9D1595CB39C09462C60810707D5686C0BDCC81D"},
     {"path": "native/pdfium.dll", "bytes": 6836736, "sha256": "5D8025AE0F7E501DE11842FEFC0F7B723E50480DB916DBFC5F59BC062F4F7E0F"}
   ]
 }

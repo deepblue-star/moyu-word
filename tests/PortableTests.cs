@@ -37,6 +37,7 @@ internal static class PortableTests
             RunCopy(executable, "write", root);
             Check(File.Exists(Path.Combine(first, "data", "favorites.json")), "favorites saved beside portable exe");
             Check(File.Exists(Path.Combine(first, "data", "settings.json")), "settings saved beside portable exe");
+            Check(File.Exists(Path.Combine(first, "data", "progress.json")), "study progress saved beside portable exe");
             Check(Directory.GetFiles(Path.Combine(first, "data", "libraries"), "*.json").Length == 1, "imported library saved beside portable exe");
             string second = Path.Combine(root, "另一台电脑", "MoyuWord-x86"); CopyFolder(first, second);
             RunCopy(Path.Combine(second, "PortableTests.exe"), "read", root);
@@ -65,14 +66,20 @@ internal static class PortableTests
         {
             store.Settings.BackgroundOpacity = .43; store.Settings.TextOpacity = .67; store.SaveSettings();
             store.ToggleFavorite(store.Libraries[0].Words[0]);
-            string csv = Path.Combine(appBase, "sample.csv"); File.WriteAllText(csv, "english,chinese\npause,暂停\n", new UTF8Encoding(false));
-            store.Import(csv); File.Delete(csv);
+            string csv = Path.Combine(appBase, "sample.csv"); File.WriteAllText(csv, "english,chinese\npause,暂停\ncarry,携带\n", new UTF8Encoding(false));
+            WordLibrary imported = store.Import(csv); File.Delete(csv);
+            store.SaveStudyPosition(store.Libraries[0].Id, store.Libraries[0].Words, 123);
+            store.SaveStudyPosition(imported.Id, imported.Words, 1);
+            store.SaveStudyPosition("favorites", store.Favorites, 0);
         }
         else
         {
             Check(store.Favorites.Count == 1 && store.Favorites[0].English == "abandon", "favorites travel with copied folder");
             Check(store.Libraries.Count == 2 && store.Libraries[1].Words[0].English == "pause", "import travels with copied folder");
             Check(store.Settings.BackgroundOpacity == .43 && store.Settings.TextOpacity == .67, "settings travel with copied folder");
+            Check(store.GetStudyIndex(store.Libraries[0].Id, store.Libraries[0].Words) == 123, "built-in study progress travels with copied folder");
+            Check(store.GetStudyIndex(store.Libraries[1].Id, store.Libraries[1].Words) == 1, "imported study progress travels with copied folder");
+            Check(store.GetStudyIndex("favorites", store.Favorites) == 0, "favorite study progress travels with copied folder");
         }
         return 0;
     }

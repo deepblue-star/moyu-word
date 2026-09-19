@@ -23,6 +23,13 @@ namespace MoyuWord
         public override string ToString() { return Name + " · " + (Words == null ? 0 : Words.Count) + " 词"; }
     }
 
+    public sealed class StudyProgress
+    {
+        public int Index { get; set; }
+        public string English { get; set; }
+        public string UpdatedUtc { get; set; }
+    }
+
     public sealed class AppSettings
     {
         public double BackgroundOpacity { get; set; }

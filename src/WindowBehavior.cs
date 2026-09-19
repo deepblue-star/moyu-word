@@ -33,13 +33,13 @@ namespace MoyuWord
             Loaded += delegate
             {
                 hoverTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
-                hoverTimer.Tick += delegate { PollHover(); }; hoverTimer.Start();
+                hoverTimer.Tick += delegate { PollHover(); RecordCardExposure(); }; hoverTimer.Start();
             };
             Activated += delegate { if (isHidden) { revealUntil = DateTime.UtcNow.AddSeconds(2); SetHidden(false); } };
             Closing += delegate
             {
                 Diagnostics.Record("closed", new { });
-                try { SaveWindowSettings(); }
+                try { RecordCardExposure(); SaveWindowSettings(); }
                 catch (System.IO.IOException ex) { Diagnostics.Record("settings-save-error", new { Message = ex.Message }); }
                 finally
                 {
@@ -73,6 +73,7 @@ namespace MoyuWord
         private void SetHidden(bool hidden)
         {
             if (hidden == isHidden) return;
+            if (hidden) RecordCardExposure();
             isHidden = hidden;
             int style = GetWindowLong(handle, -20);
             SetWindowLong(handle, -20, hidden ? style | 0x20 : style & ~0x20);
