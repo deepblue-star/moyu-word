@@ -1,0 +1,6 @@
+* text=auto eol=lf
+*.pdf binary
+*.dll binary
+*.ico binary
+assets/tem4.json -text whitespace=cr-at-eol
+third-party/pdfium/licenses/** -text -whitespace

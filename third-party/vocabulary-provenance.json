@@ -1,0 +1,17 @@
+{
+  "repository": "https://github.com/kajweb/dict",
+  "commit": "3992bcb94c800a2fd38a9fd6ff95b2353e755363",
+  "sourcePath": "book/1521164653685_Level4_2.zip",
+  "downloadUrl": "https://raw.githubusercontent.com/kajweb/dict/3992bcb94c800a2fd38a9fd6ff95b2353e755363/book/1521164653685_Level4_2.zip",
+  "gitBlobSha1": "bc12756e6f7b820aab9256cb88753cd0ce960fc3",
+  "archiveSha256": "de87811bf10770993eea6566412b9d57468ec9ff20607e048c2b85484ab2d221",
+  "archiveBytes": 1706442,
+  "originalUrl": "http://ydschool-online.nos.netease.com/1521164653685_Level4_2.zip",
+  "upstreamName": "专四核心词汇（正序版）",
+  "upstreamId": "Level4_2",
+  "sourceRecords": 4025,
+  "outputWords": 4025,
+  "wordsWithExamples": 3803,
+  "assetSha256": "d66e04ec8786b3c66e2b4389d9f168ef38b06cf78899451dc862648f68a71c66",
+  "rights": "Upstream says data was crawled from the Youdao vocabulary app. No LICENSE or explicit redistribution grant was present in the pinned repository. No open license is asserted."
+}

@@ -1,0 +1,22 @@
+TEM-4 vocabulary data notice
+
+Source: kajweb/dict, commit 3992bcb94c800a2fd38a9fd6ff95b2353e755363
+https://github.com/kajweb/dict/tree/3992bcb94c800a2fd38a9fd6ff95b2353e755363
+Upstream file: book/1521164653685_Level4_2.zip
+Upstream collection: Level4_2, TEM-4 core vocabulary (4025 source records).
+Git blob SHA-1: bc12756e6f7b820aab9256cb88753cd0ce960fc3
+
+The upstream README says the data was crawled from the Youdao vocabulary app.
+At the pinned commit, the repository has no LICENSE file and no explicit
+redistribution grant was found. This notice does not grant any rights in the
+source definitions, pronunciations or example sentences. No open license is
+asserted. The application's source-code license does not cover these data.
+The bundled copy is a local study/test dataset; public or commercial distribution
+requires appropriate permission or replacement by a clearly licensed dataset.
+
+Normalization preserves the source headwords, Chinese definitions, parts of
+speech, phonetics and first available example sentence/translation. Missing
+fields remain empty; no synthetic example sentences are added.
+
+See vocabulary-provenance.json for SHA-256 checksums and exact normalization
+counts, and ../docs/vocabulary.md for format and development rebuild instructions.

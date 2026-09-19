@@ -1,0 +1,8 @@
+{
+  "Id": "my-words",
+  "Name": "我的单词",
+  "Words": [
+    { "English": "pause", "Chinese": "暂停；停顿", "PartOfSpeech": "n. / v.", "Phonetic": "/pɔːz/", "Example": "Take a short pause.", "ExampleChinese": "稍作停顿。" },
+    { "English": "quiet", "Chinese": "安静的", "PartOfSpeech": "adj.", "Phonetic": "/ˈkwaɪət/", "Example": "The room is quiet.", "ExampleChinese": "房间很安静。" }
+  ]
+}
